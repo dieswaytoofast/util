@@ -1,0 +1,9 @@
+{application, util,
+ [
+  {description, "General utility functions"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {mod, {util_app, []}},
+  {env, []}
+ ]}.
