@@ -3,7 +3,11 @@
   {description, "General utility functions"},
   {vsn, "0.1.0"},
   {registered, []},
-  {applications, [kernel, stdlib]},
+  {applications, [
+                 kernel, 
+                 stdlib,
+                 bstr
+                 ]},
   {mod, {util_app, []}},
   {env, []}
  ]}.

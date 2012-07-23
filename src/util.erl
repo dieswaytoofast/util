@@ -11,8 +11,12 @@
 -author('Mahesh Paolini-Subramanya <mahesh@dieswaytoofast.com>').
 -author('Tom Heinan <me@tomheinan.com>').
 
+-define(SERVER, ?MODULE).
+
 -include("defaults.hrl").
 
+-export([get_env/0, get_env/1, get_env/2]).
+-export([start/0, stop/0]).
 %% Conversions
 -export([get_string/1]).
 -export([get_binary/1]).
@@ -32,6 +36,82 @@
 %% String manipulation
 -export([build_string/1]).
 
+
+%% ------------------------------------------------------------------
+%% API Function Definitions
+%% ------------------------------------------------------------------
+%%
+%% Environment helper functions
+%%
+
+%% @doc Retrieve all key/value pairs in the env for the specified app.
+-spec get_env() -> [{Key :: atom(), Value :: term()}].
+get_env() ->
+    application:get_all_env(?SERVER).
+
+%% @doc The official way to get a value from the app's env.
+%%      Will return the 'undefined' atom if that key is unset.
+-spec get_env(Key :: atom()) -> term().
+get_env(Key) ->
+    get_env(Key, undefined).
+
+%% @doc The official way to get a value from this application's env.
+%%      Will return Default if that key is unset.
+-spec get_env(Key :: atom(), Default :: term()) -> term().
+get_env(Key, Default) ->
+    case application:get_env(?SERVER, Key) of
+        {ok, Value} ->
+            Value;
+        _ ->
+            Default
+    end.
+%%
+%% Application utility functions
+%%
+
+%% @doc Start the application and all its dependencies.
+-spec start() -> ok.
+start() ->
+    start_deps(?SERVER).
+
+-spec start_deps(App :: atom()) -> ok.
+start_deps(App) ->
+    application:load(App),
+    {ok, Deps} = application:get_key(App, applications),
+    lists:foreach(fun start_deps/1, Deps),
+    start_app(App).
+
+-spec start_app(App :: atom()) -> ok.
+start_app(App) ->
+    case application:start(App) of
+        {error, {already_started, _}} -> ok;
+        ok                            -> ok
+    end.
+
+
+%% @doc Stop the application and all its dependencies.
+-spec stop() -> ok.
+stop() ->
+    stop_deps(?SERVER).
+
+-spec stop_deps(App :: atom()) -> ok.
+stop_deps(App) ->
+    stop_app(App),
+    {ok, Deps} = application:get_key(App, applications),
+    lists:foreach(fun stop_deps/1, lists:reverse(Deps)).
+
+-spec stop_app(App :: atom()) -> ok.
+stop_app(kernel) ->
+    ok;
+stop_app(stdlib) ->
+    ok;
+stop_app(App) ->
+    case application:stop(App) of
+        {error, {not_started, _}} -> ok;
+        ok                        -> ok
+    end.
+
+
 %%
 %% Conversion
 %% 
@@ -50,7 +130,7 @@ get_integer(Value) ->
 get_integer_value(Value) when is_binary(Value) ->
     get_integer_value(binary_to_list(Value));
 get_integer_value(Value) when is_atom(Value) ->
-    get_integer_value(atom_to_list(Value));
+    get_integer_value(bstr:bstr(Value));
 get_integer_value(Value) when is_list(Value) ->
     list_to_integer(Value);
 get_integer_value(Value) when is_integer(Value) ->
