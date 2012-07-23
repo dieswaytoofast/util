@@ -27,6 +27,7 @@
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
+-export([get_epoch/0]).
 
 %% String manipulation
 -export([build_string/1]).
@@ -36,6 +37,7 @@
 %% 
 
 -spec get_integer(term()) -> integer() | error().
+get_integer(Value) when is_integer(Value) -> Value;
 get_integer(Value) ->
     case bstr:is_numeric(bstr:bstr(Value)) of
         true ->
@@ -132,6 +134,8 @@ validate_list_of_binaries([H|T], ReturnVal) ->
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
 
+%% Time manipulation
+
 %% @doc Convert a datetime in the format returned by the calendar:universal_time/0 function
 %%      into a timestamp as a floating-point with the number of seconds since
 %%      the Unix Epoch (Jan 1, 1970, 00:00:00) and a precision of microseconds.
@@ -143,3 +147,6 @@ datetime_to_epoch({{_Year, _Month, _Day} = Date, {Hour, Min, Sec}}) when is_floa
     Subsec = round((Sec - TruncatedSec) * 1000000.0) / 1000000.0,
     float(calendar:datetime_to_gregorian_seconds({Date, {Hour, Min, TruncatedSec}}) - ?SECONDS_TO_UNIX_EPOCH) + Subsec.
 
+-spec get_epoch() -> epoch().
+get_epoch() ->
+datetime_to_epoch(calendar:universal_time()).
