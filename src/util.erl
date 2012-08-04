@@ -145,8 +145,8 @@ get_string(Data) when is_list(Data) -> Data;
 get_string(_) -> {error, ?INVALID_STRING}.
 
 -spec get_binary(atom() | binary() | string()) -> binary().
-get_binary(Data) when is_integer(Data) -> integer_to_list(Data);
-get_binary(Data) when is_atom(Data) -> atom_to_list(Data);
+get_binary(Data) when is_integer(Data) -> get_binary(integer_to_list(Data));
+get_binary(Data) when is_atom(Data) -> get_binary(atom_to_list(Data));
 get_binary(Data) when is_list(Data) -> list_to_binary(Data);
 get_binary(Data) when is_binary(Data) -> Data;
 get_binary(_) -> {error, ?INVALID_BINARY}.
