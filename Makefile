@@ -27,7 +27,7 @@ distclean:
 	@rebar delete-deps
 
 dialyze: compile
-	@dialyzer -r ./apps/
+	@dialyzer -r ./ebin
 
 test:
 	@rebar skip_deps=true ct verbose=1
