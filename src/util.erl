@@ -26,7 +26,7 @@
 
 %% Validations
 -export([required/2]).
--export([validate_list_of_binaries/2]).
+-export([validate_list_of_binaries/1]).
 
 
 %% Time specific stuff
@@ -116,7 +116,7 @@ stop_app(App) ->
 %% Conversion
 %% 
 
--spec get_integer(term()) -> integer() | error().
+-spec get_integer(binary() | atom() | list() | char()) -> integer() | error().
 get_integer(Value) when is_integer(Value) -> Value;
 get_integer(Value) ->
     case bstr:is_numeric(bstr:bstr(Value)) of
@@ -126,7 +126,7 @@ get_integer(Value) ->
             {error, {?INVALID_INTEGER, [Value]}}
     end.
 
--spec get_integer_value(term()) -> integer().
+-spec get_integer_value(term()) -> integer() | error().
 get_integer_value(Value) when is_binary(Value) ->
     get_integer_value(binary_to_list(Value));
 get_integer_value(Value) when is_atom(Value) ->
@@ -134,17 +134,25 @@ get_integer_value(Value) when is_atom(Value) ->
 get_integer_value(Value) when is_list(Value) ->
     list_to_integer(Value);
 get_integer_value(Value) when is_integer(Value) ->
-    Value.
+    Value;
+get_integer_value(Value) ->
+    {error, {?INVALID_INTEGER, [Value]}}.
 
 
--spec get_string(atom() | binary() | string()) -> string().
+-spec get_string(term()) -> string() | error().
 get_string(Data) when is_integer(Data) -> integer_to_list(Data);
 get_string(Data) when is_atom(Data) -> atom_to_list(Data);
 get_string(Data) when is_binary(Data) -> binary_to_list(Data);
-get_string(Data) when is_list(Data) -> Data;
+get_string(Data) when is_list(Data) ->
+    case io_lib:printable_unicode_list(Data) of
+        true ->
+            Data;
+        false ->
+            {error, ?INVALID_STRING}
+    end;
 get_string(_) -> {error, ?INVALID_STRING}.
 
--spec get_binary(atom() | binary() | string()) -> binary().
+-spec get_binary(term()) -> binary() | error().
 get_binary(Data) when is_integer(Data) -> get_binary(integer_to_list(Data));
 get_binary(Data) when is_atom(Data) -> get_binary(atom_to_list(Data));
 get_binary(Data) when is_list(Data) -> list_to_binary(Data);
@@ -156,13 +164,14 @@ get_binary(_) -> {error, ?INVALID_BINARY}.
 get_boolean(Value) when is_binary(Value) -> 
     get_boolean_lower_value(bstr:lower(Value));
 get_boolean(Value) -> 
-    {error, ?INVALID_BOOLEAN, [Value]}.
+    {error, {?INVALID_BOOLEAN, [Value]}}.
 
 get_boolean_lower_value(<<"true">>) -> true;
 get_boolean_lower_value(<<"false">>) -> false;
 get_boolean_lower_value(Value) -> 
-    {error, ?INVALID_BOOLEAN, [Value]}.
+    {error, {?INVALID_BOOLEAN, [Value]}}.
 
+-spec get_base62(integer()) -> string().
 get_base62(Number) -> get_base62(Number, []).
 get_base62(Number, []) when Number =:= 0 -> "0";
 get_base62(Number, Acc) when Number =:= 0 -> Acc;
@@ -198,18 +207,23 @@ required(Field, Value) ->
     if Value =:= []
          orelse Value =:= <<>>
          orelse Value =:= undefined ->
-           {error, ?EMPTY_ERROR, [Field]};
+           {error, {?EMPTY_ERROR, [Field]}};
         true ->
             ok
     end.
 
+
+-spec validate_list_of_binaries([term()]) -> ok | error().
+validate_list_of_binaries(L) ->
+    validate_list_of_binaries(L, []).
+
 %% @doc Validate that this is a list of binaries
--spec validate_list_of_binaries(Value::any(), ReturnVal::any()) -> ok | error().
+-spec validate_list_of_binaries([term()], [term()]) -> ok | error().
 validate_list_of_binaries([H|T], ReturnVal) ->
     if is_binary(H) =:= true ->
             validate_list_of_binaries(T, ReturnVal);
         true ->
-            {error, ReturnVal, [H]}
+            {error, {ReturnVal, [H]}}
     end;
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
@@ -229,4 +243,4 @@ datetime_to_epoch({{_Year, _Month, _Day} = Date, {Hour, Min, Sec}}) when is_floa
 
 -spec get_epoch() -> epoch().
 get_epoch() ->
-datetime_to_epoch(calendar:universal_time()).
+    datetime_to_epoch(calendar:universal_time()).
