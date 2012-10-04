@@ -126,7 +126,7 @@ get_integer(Value) ->
             {error, {?INVALID_INTEGER, [Value]}}
     end.
 
--spec get_integer_value(term()) -> integer() | error().
+-spec get_integer_value(term()) -> integer().
 get_integer_value(Value) when is_binary(Value) ->
     get_integer_value(binary_to_list(Value));
 get_integer_value(Value) when is_atom(Value) ->
@@ -134,10 +134,7 @@ get_integer_value(Value) when is_atom(Value) ->
 get_integer_value(Value) when is_list(Value) ->
     list_to_integer(Value);
 get_integer_value(Value) when is_integer(Value) ->
-    Value;
-get_integer_value(Value) ->
-    {error, {?INVALID_INTEGER, [Value]}}.
-
+    Value.
 
 -spec get_string(term()) -> string() | error().
 get_string(Data) when is_integer(Data) -> integer_to_list(Data);
