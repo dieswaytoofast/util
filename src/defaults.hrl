@@ -10,9 +10,13 @@
 -include("types.hrl").
 %%  ERRORS
 -define(INVALID_INTEGER, <<"invalid_integer">>).
+-define(INVALID_INTEGER_LIST, <<"invalid_integer_list">>).
 -define(INVALID_BOOLEAN, <<"invalid_boolean">>).
+-define(INVALID_BOOLEAN_LIST, <<"invalid_boolean_list">>).
 -define(INVALID_BINARY, <<"invalid_binary">>).
+-define(INVALID_BINARY_LIST, <<"invalid_binary_list">>).
 -define(INVALID_STRING, <<"invalid_string">>).
+-define(INVALID_NULL, <<"invalid_null">>).
 -define(EMPTY_ERROR, <<"empty_error">>).
 
 %%  DEFINES
