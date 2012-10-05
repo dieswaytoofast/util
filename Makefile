@@ -29,7 +29,7 @@ distclean:
 dialyze: compile
 	@dialyzer -r ebin -r deps/bstr/ebin -r deps/mochiweb/ebin
 
-test:
+test: compile
 	@rebar skip_deps=true ct verbose=1
 
 console:
