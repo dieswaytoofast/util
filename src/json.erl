@@ -7,7 +7,10 @@
          validate_integer/1,
          validate_integer_list/1,
          validate_binary/1,
-         validate_binary_list/1]).
+         validate_binary_list/1,
+         validate_undefined/1,
+         validate_null/1,
+         validate_ignore/1]).
 %% Validation
 
 -spec validate_boolean(any()) -> boolean() | error().
@@ -80,3 +83,17 @@ validate_list_with(Fun, ErrorType, L) ->
         _ ->
             {error, {ErrorType, [L]}}
     end.
+
+-spec validate_undefined(any()) -> any().
+validate_undefined(Value) ->
+    Value.
+
+-spec validate_null(any()) -> undefined | error().
+validate_null(null) ->
+    undefined;
+validate_null(Other) ->
+    {error, {?INVALID_NULL, [Other]}}.
+
+-spec validate_ignore(any()) -> undefined.
+validate_ignore(_Any) ->
+    undefined.

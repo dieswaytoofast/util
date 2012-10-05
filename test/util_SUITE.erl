@@ -56,7 +56,12 @@ groups() ->
       t_validate_integer_list_generated,
       t_validate_binary,
       t_validate_binary_list,
-      t_validate_binary_list_generated]}].
+      t_validate_binary_list_generated,
+      t_validate_undefined,
+      t_validate_undefined_generated,
+      t_validate_null,
+      t_validate_null_generated,
+      t_validate_ignore]}].
 
 all() ->
     [{group, conversion},
@@ -139,6 +144,27 @@ prop_validate_binary_list_generated() ->
                 _ ->
                     true
             end).
+
+t_validate_undefined(_) ->
+    ?CHECKSPEC(json, validate_undefined, 1).
+
+t_validate_undefined_generated(_) ->
+    ?PROPTEST(prop_validate_undefined_generated).
+
+prop_validate_undefined_generated() ->
+    ?FORALL(U, any(), U =:= json:validate_undefined(U)).
+
+t_validate_null(_) ->
+    ?CHECKSPEC(json, validate_null, 1).
+
+t_validate_null_generated(_) ->
+    ?PROPTEST(prop_validate_null_generated).
+
+prop_validate_null_generated() ->
+    ?FORALL(U, weighted_union([{1,null}, {10, any()}]), ?IMPLIES(U =:= null, json:validate_null(U) =:= undefined)).
+
+t_validate_ignore(_) ->
+    ?CHECKSPEC(json, validate_ignore, 1).
 
 %% generator for expected json boolean values
 binary_boolean() ->
