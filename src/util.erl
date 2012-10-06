@@ -114,7 +114,7 @@ stop_app(App) ->
 
 %%
 %% Conversion
-%% 
+%%
 
 -spec get_integer(binary() | atom() | list() | char()) -> integer() | error().
 get_integer(Value) when is_integer(Value) -> Value;
@@ -158,21 +158,21 @@ get_binary(_) -> {error, ?INVALID_BINARY}.
 
 %% @doc Gets the boolean value of the provided parameter
 -spec get_boolean(Value::term()) -> boolean() | error().
-get_boolean(Value) when is_binary(Value) -> 
+get_boolean(Value) when is_binary(Value) ->
     get_boolean_lower_value(bstr:lower(Value));
-get_boolean(Value) -> 
+get_boolean(Value) ->
     {error, {?INVALID_BOOLEAN, [Value]}}.
 
 get_boolean_lower_value(<<"true">>) -> true;
 get_boolean_lower_value(<<"false">>) -> false;
-get_boolean_lower_value(Value) -> 
+get_boolean_lower_value(Value) ->
     {error, {?INVALID_BOOLEAN, [Value]}}.
 
 -spec get_base62(integer()) -> string().
 get_base62(Number) -> get_base62(Number, []).
 get_base62(Number, []) when Number =:= 0 -> "0";
 get_base62(Number, Acc) when Number =:= 0 -> Acc;
-get_base62(Number, Acc) when Number < 0 -> get_base62(-Number, Acc); 
+get_base62(Number, Acc) when Number < 0 -> get_base62(-Number, Acc);
 get_base62(Number, Acc) ->
 	NumberDiv = Number div 62,
     NumberRem = Number rem 62,
@@ -186,9 +186,9 @@ get_letter(X) -> $a + X - 36.
 
 %%
 %% String Manipulation
-%% 
+%%
 build_string(Params) when is_list(Params) ->
-    Result = 
+    Result =
     lists:foldr(fun(X, Acc) ->
                     SX = get_string(X),
                     [SX|Acc]
@@ -197,7 +197,7 @@ build_string(Params) when is_list(Params) ->
 
 %%
 %% Validations
-%% 
+%%
 %% @doc Check if Value is an 'empty' parameter
 -spec required(Field::term(), Value::term()) -> ok | error().
 required(Field, Value) ->
