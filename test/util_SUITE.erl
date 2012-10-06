@@ -14,7 +14,7 @@
 %%--------------------------------------------------------------------
 
 suite() ->
-    [{timetrap,{minutes,1}}].
+    [{ct_hooks,[cth_surefire]}, {timetrap,{minutes,1}}].
 
 init_per_suite(Config) ->
     Config.
