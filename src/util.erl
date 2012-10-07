@@ -36,6 +36,9 @@
 %% String manipulation
 -export([build_string/1]).
 
+%% UUID stuff
+-export([create_uuid/0]).
+
 
 %% ------------------------------------------------------------------
 %% API Function Definitions
@@ -241,3 +244,34 @@ datetime_to_epoch({{_Year, _Month, _Day} = Date, {Hour, Min, Sec}}) when is_floa
 -spec get_epoch() -> epoch().
 get_epoch() ->
     datetime_to_epoch(calendar:universal_time()).
+
+%% UUID
+%% @doc  Generate a v4 UUID as a binary (rfc4122)
+-spec create_uuid() -> binary().
+create_uuid() ->
+    {A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+    create_uuid(random:uniform(1 bsl 48) - 1, random:uniform(1 bsl 12) - 1,
+        random:uniform(1 bsl 32) - 1, random:uniform(1 bsl 30) - 1).
+create_uuid(R1, R2, R3, R4) ->
+    Uuid = <<R1:48, 4:4, R2:12, 2:2, R3:32, R4:30>>,
+    list_to_binary(uuid_to_string(Uuid)).
+
+%% @doc  Convert a UUID binary to a hex encoded string.
+-spec uuid_to_string(Uuid::binary()) -> string().
+uuid_to_string(<<TL:4/binary, TM:2/binary, THV:2/binary, CS:2/binary, N:6/binary>>) ->
+    uuid_to_string([TL, TM, THV, CS, N], []).
+
+uuid_to_string([Head | [_ | _] = Tail], Acc) ->
+    uuid_to_string(Tail, [$- | encode_in_hex(Head, Acc)]);
+uuid_to_string([Head | Tail], Acc) ->
+    uuid_to_string(Tail, encode_in_hex(Head, Acc));
+uuid_to_string([], Acc) ->
+    lists:reverse(Acc).
+
+encode_in_hex(<<Hi:4, Lo:4, Tail/binary>>, Acc) ->
+    encode_in_hex(Tail, [char:integer_to_hex(Lo, lower), char:integer_to_hex(Hi, lower) | Acc]);
+encode_in_hex(<<>>, Acc) ->
+    Acc.
+
+

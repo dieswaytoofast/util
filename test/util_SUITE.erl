@@ -46,6 +46,9 @@ groups() ->
     {validation, [],
      [t_required,
       t_validate_list_of_binaries]},
+     
+    {uuid, [],
+     [t_create_uuid]},
 
     {json, [],
      [t_validate_boolean,
@@ -66,6 +69,7 @@ groups() ->
 all() ->
     [{group, conversion},
      {group, validation},
+     {group, uuid},
      {group, json}].
 
 %%--------------------------------------------------------------------
@@ -92,6 +96,9 @@ t_required(_) ->
 
 t_validate_list_of_binaries(_) ->
     ?CHECKSPEC(util, validate_list_of_binaries, 1).
+
+t_create_uuid(_) ->
+    ?CHECKSPEC(util, required, 2).
 
 t_validate_boolean(_) ->
     ?CHECKSPEC(json, validate_boolean, 1).
