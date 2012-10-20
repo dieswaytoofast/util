@@ -61,7 +61,8 @@ groups() ->
       t_validate_undefined_generated,
       t_validate_null,
       t_validate_null_generated,
-      t_validate_ignore]}].
+      t_validate_ignore,
+      t_validate_atom]}].
 
 all() ->
     [{group, conversion},
@@ -185,3 +186,6 @@ json_integer() ->
     oneof([integer(), binary_integer()]).
 json_integer_list() ->
     list(json_integer()).
+
+t_validate_atom(_) ->
+    ?CHECKSPEC(json, validate_atom, 2).

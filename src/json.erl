@@ -10,7 +10,8 @@
          validate_binary_list/1,
          validate_undefined/1,
          validate_null/1,
-         validate_ignore/1]).
+         validate_ignore/1,
+         validate_atom/2]).
 %% Validation
 
 -spec validate_boolean(any()) -> boolean() | error().
@@ -97,3 +98,21 @@ validate_null(Other) ->
 -spec validate_ignore(any()) -> undefined.
 validate_ignore(_Any) ->
     undefined.
+
+-spec validate_atom([atom()], any()) -> atom() | error().
+validate_atom(Accept, A) when is_binary(A) ->
+    try
+        A1 = list_to_existing_atom(binary_to_list(A)),
+        validate_atom(Accept, A1)
+    catch _:_ ->
+            {error, {?INVALID_ATOM, [A]}}
+    end;
+validate_atom(Accept, A) when is_atom(A) ->
+    case lists:member(A, Accept) of
+        true ->
+            A;
+        false ->
+            {error, {?INVALID_ATOM, [A]}}
+    end;
+validate_atom(_, A) ->
+    {error, {?INVALID_ATOM, [A]}}.
