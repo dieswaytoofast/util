@@ -101,7 +101,7 @@ validate_ignore(_Any) ->
 
 -spec validate_atom([atom()], any()) -> atom() | error().
 validate_atom(Accept, B) when is_binary(B) ->
-    L = list_to_binary(B),
+    L = binary_to_list(B),
     validate_atom(Accept, L);
 validate_atom(Accept, L) when is_list(L) ->
     try
