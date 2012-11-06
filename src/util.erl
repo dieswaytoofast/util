@@ -12,6 +12,9 @@
 -author('Tom Heinan <me@tomheinan.com>').
 
 -define(SERVER, ?MODULE).
+%% We're not checking for RFC compliance
+%% http://www.w3.org/TR/html5/states-of-the-type-attribute.html#valid-e-mail-address
+-define(EMAIL_ADDRESS_REGEXP, "^[a-zA-Z0-9.\\\!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$").
 
 -include("defaults.hrl").
 
@@ -27,6 +30,7 @@
 %% Validations
 -export([required/2]).
 -export([validate_list_of_binaries/1]).
+-export([validate_email_address/1]).
 
 
 %% Time specific stuff
@@ -224,6 +228,19 @@ validate_list_of_binaries([H|T], ReturnVal) ->
     end;
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
+
+-spec validate_email_address(term()) -> ok | error().
+validate_email_address(Address) ->
+    try
+        case re:run(Address, ?EMAIL_ADDRESS_REGEXP) of
+            nomatch ->
+                {error, {?INVALID_EMAIL_ADDRESS, [Address]}};
+            {match, _} ->
+                ok
+        end
+    catch _:_ ->
+            {error, {?INVALID_EMAIL_ADDRESS, [Address]}}
+    end.
 
 %% Time manipulation
 

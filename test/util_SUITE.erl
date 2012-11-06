@@ -35,7 +35,7 @@ end_per_testcase(_TestCase, _Config) ->
     ok.
 
 groups() ->
-    [{conversion, [],
+    [{conversion, [parallel],
       [t_get_string,
        t_get_binary,
        t_get_integer,
@@ -43,11 +43,13 @@ groups() ->
        t_get_base62]},
 
 
-    {validation, [],
+    {validation, [parallel],
      [t_required,
-      t_validate_list_of_binaries]},
+      t_validate_list_of_binaries,
+      t_validate_email_address,
+      t_validate_email_address_correct]},
 
-    {json, [],
+    {json, [parallel],
      [t_validate_boolean,
       t_validate_boolean_list,
       t_validate_boolean_list_generated,
@@ -93,6 +95,15 @@ t_required(_) ->
 
 t_validate_list_of_binaries(_) ->
     ?CHECKSPEC(util, validate_list_of_binaries, 1).
+
+t_validate_email_address(_) ->
+    ?CHECKSPEC(util, validate_email_address, 1).
+
+t_validate_email_address_correct(_) ->
+    ?PROPTEST(prop_email_address).
+
+prop_email_address() ->
+    ?FORALL(E, email(), ok =:= util:validate_email_address(E)).
 
 t_validate_boolean(_) ->
     ?CHECKSPEC(json, validate_boolean, 1).
@@ -189,3 +200,22 @@ json_integer_list() ->
 
 t_validate_atom(_) ->
     ?CHECKSPEC(json, validate_atom, 2).
+
+email_local_part() ->
+    non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).
+
+label() ->
+    non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-]))).
+
+email_domain() ->
+  ?SUCHTHAT(Hostname,
+    ?LET(Labels,
+      non_empty(list(label())),
+      string:join(Labels, ".")),
+    length(Hostname) < 256).
+
+email() ->
+    ?SUCHTHAT(Email,
+              ?LET({LocalPart, Domain}, {email_local_part(), email_domain()},
+                   string:join([LocalPart, Domain], "@")),
+              length(Email) < 255).

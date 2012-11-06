@@ -18,6 +18,7 @@
 -define(INVALID_STRING, <<"invalid_string">>).
 -define(INVALID_NULL, <<"invalid_null">>).
 -define(INVALID_ATOM, <<"invalid_atom">>).
+-define(INVALID_EMAIL_ADDRESS, <<"invalid_email_address">>).
 -define(EMPTY_ERROR, <<"empty_error">>).
 
 %%  DEFINES
