@@ -103,7 +103,7 @@ t_validate_email_address_correct(_) ->
     ?PROPTEST(prop_email_address).
 
 prop_email_address() ->
-    ?FORALL(E, email(), ok =:= util:validate_email_address(E)).
+    ?FORALL(E, email(), E =:= util:validate_email_address(E)).
 
 t_validate_boolean(_) ->
     ?CHECKSPEC(json, validate_boolean, 1).
@@ -217,5 +217,5 @@ email_domain() ->
 email() ->
     ?SUCHTHAT(Email,
               ?LET({LocalPart, Domain}, {email_local_part(), email_domain()},
-                   string:join([LocalPart, Domain], "@")),
-              length(Email) < 255).
+                   list_to_binary(string:join([LocalPart, Domain], "@"))),
+              byte_size(Email) < 255).

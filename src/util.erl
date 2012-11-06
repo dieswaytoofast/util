@@ -229,14 +229,14 @@ validate_list_of_binaries([H|T], ReturnVal) ->
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
 
--spec validate_email_address(term()) -> ok | error().
+-spec validate_email_address(term()) -> binary() | error().
 validate_email_address(Address) ->
     try
-        case re:run(Address, ?EMAIL_ADDRESS_REGEXP) of
+        case re:run(Address, ?EMAIL_ADDRESS_REGEXP, [{capture, all, binary}]) of
             nomatch ->
                 {error, {?INVALID_EMAIL_ADDRESS, [Address]}};
-            {match, _} ->
-                ok
+            {match, [B]} ->
+                B
         end
     catch _:_ ->
             {error, {?INVALID_EMAIL_ADDRESS, [Address]}}
