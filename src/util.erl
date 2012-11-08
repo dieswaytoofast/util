@@ -32,6 +32,7 @@
 -export([validate_list_of_binaries/1]).
 -export([validate_email_address/1]).
 -export([validate_url/1]).
+-export([validate_tcp_port/1]).
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
@@ -251,6 +252,12 @@ validate_url(Url) when is_binary(Url) ->
         _ ->
             Url
     end.
+
+-spec validate_tcp_port(term()) -> 1 .. 65535 | error().
+validate_tcp_port(Port) when is_integer(Port) andalso Port > 0 andalso Port =< 65535 ->
+    Port;
+validate_tcp_port(Port) ->
+    {error, {?INVALID_TCP_PORT, [Port]}}.
 
 %% Time manipulation
 

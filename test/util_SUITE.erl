@@ -65,7 +65,8 @@ groups() ->
       t_validate_null_generated,
       t_validate_ignore,
       t_validate_atom,
-      t_validate_url]}].
+      t_validate_url,
+      t_validate_tcp_port]}].
 
 all() ->
     [{group, conversion},
@@ -209,6 +210,9 @@ t_validate_url(_) ->
     Url2 = util:validate_url(Url2),
     BadUrl = <<"htt://foo.bar.com?a=b">>,
     {error, {?INVALID_URL, [BadUrl]}} = util:validate_url(BadUrl).
+
+t_validate_tcp_port(_) ->
+    ?CHECKSPEC(util, validate_tcp_port, 1).
 
 email_local_part() ->
     non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).

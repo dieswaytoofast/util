@@ -20,6 +20,7 @@
 -define(INVALID_ATOM, <<"invalid_atom">>).
 -define(INVALID_EMAIL_ADDRESS, <<"invalid_email_address">>).
 -define(INVALID_URL, <<"invalid_url">>).
+-define(INVALID_TCP_PORT, <<"invalid_tcp_port">>).
 -define(EMPTY_ERROR, <<"empty_error">>).
 
 %%  DEFINES
