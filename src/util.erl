@@ -30,6 +30,7 @@
 %% Validations
 -export([required/2]).
 -export([validate_list_of_binaries/1]).
+-export([validate_list_with/2]).
 -export([validate_email_address/1]).
 -export([validate_url/1]).
 -export([validate_tcp_port/1]).
@@ -230,6 +231,20 @@ validate_list_of_binaries([H|T], ReturnVal) ->
     end;
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
+
+-spec validate_list_with({module(), atom()}, list()) -> list() | error().
+validate_list_with({_M, _F}=Fun, L) ->
+    validate_list_with_1(Fun, L, L, []).
+
+validate_list_with_1(_, _, [], Acc) ->
+    lists:reverse(Acc);
+validate_list_with_1({M, F}=Fun, L, [H|T], Acc) ->
+    case M:F(H) of
+        {error, _} ->
+            {error, {?INVALID_LIST, [L]}};
+        H2 ->
+            validate_list_with_1(Fun, L, T, [H2|Acc])
+    end.
 
 -spec validate_email_address(term()) -> binary() | error().
 validate_email_address(Address) ->

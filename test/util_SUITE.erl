@@ -68,7 +68,8 @@ groups() ->
       t_validate_url,
       t_validate_tcp_port,
       t_validate_utf8,
-      t_validate_utf8_spec]}].
+      t_validate_utf8_spec,
+      t_validate_list_with]}].
 
 all() ->
     [{group, conversion},
@@ -224,6 +225,12 @@ prop_validate_utf8() ->
 
 t_validate_utf8_spec(_) ->
     ?CHECKSPEC(util, validate_utf8, 1).
+
+t_validate_list_with(_) ->
+    ?PROPTEST(prop_validate_list_with).
+
+prop_validate_list_with() ->
+    ?FORALL(L, list(integer()), L =:= util:validate_list_with({json, validate_integer}, L)).
 
 email_local_part() ->
     non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).

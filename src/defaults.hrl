@@ -22,6 +22,7 @@
 -define(INVALID_URL, <<"invalid_url">>).
 -define(INVALID_TCP_PORT, <<"invalid_tcp_port">>).
 -define(INVALID_UTF8, <<"invalid_utf8">>).
+-define(INVALID_LIST, <<"invalid_list">>).
 -define(EMPTY_ERROR, <<"empty_error">>).
 
 %%  DEFINES
