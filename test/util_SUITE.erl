@@ -66,7 +66,9 @@ groups() ->
       t_validate_ignore,
       t_validate_atom,
       t_validate_url,
-      t_validate_tcp_port]}].
+      t_validate_tcp_port,
+      t_validate_utf8,
+      t_validate_utf8_spec]}].
 
 all() ->
     [{group, conversion},
@@ -213,6 +215,15 @@ t_validate_url(_) ->
 
 t_validate_tcp_port(_) ->
     ?CHECKSPEC(util, validate_tcp_port, 1).
+
+t_validate_utf8(_) ->
+    ?PROPTEST(prop_validate_utf8).
+
+prop_validate_utf8() ->
+    ?FORALL(B, proper_stdgen:utf8_bin(), B =:= util:validate_utf8(B)).
+
+t_validate_utf8_spec(_) ->
+    ?CHECKSPEC(util, validate_utf8, 1).
 
 email_local_part() ->
     non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).

@@ -33,6 +33,7 @@
 -export([validate_email_address/1]).
 -export([validate_url/1]).
 -export([validate_tcp_port/1]).
+-export([validate_utf8/1]).
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
@@ -258,6 +259,20 @@ validate_tcp_port(Port) when is_integer(Port) andalso Port > 0 andalso Port =< 6
     Port;
 validate_tcp_port(Port) ->
     {error, {?INVALID_TCP_PORT, [Port]}}.
+
+-spec validate_utf8(term()) -> binary() | error().
+validate_utf8(Bin) ->
+    try
+        Bin2 = bstr:bstr(Bin),
+        case unicode:characters_to_binary(Bin2, utf8, utf8) of
+            Bin2 ->
+                Bin2;
+            _ ->
+                {error, {?INVALID_UTF8, [Bin]}}
+        end
+    catch _:_ ->
+            {error, {?INVALID_UTF8, [Bin]}}
+    end.
 
 %% Time manipulation
 
