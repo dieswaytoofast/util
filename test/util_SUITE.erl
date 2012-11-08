@@ -64,7 +64,8 @@ groups() ->
       t_validate_null,
       t_validate_null_generated,
       t_validate_ignore,
-      t_validate_atom]}].
+      t_validate_atom,
+      t_validate_url]}].
 
 all() ->
     [{group, conversion},
@@ -200,6 +201,14 @@ json_integer_list() ->
 
 t_validate_atom(_) ->
     ?CHECKSPEC(json, validate_atom, 2).
+
+t_validate_url(_) ->
+    Url = <<"http://foo.bar.com?a=b">>,
+    Url = util:validate_url(Url),
+    Url2 = <<"https://foo.bar.com?a=b">>,
+    Url2 = util:validate_url(Url2),
+    BadUrl = <<"htt://foo.bar.com?a=b">>,
+    {error, {?INVALID_URL, [BadUrl]}} = util:validate_url(BadUrl).
 
 email_local_part() ->
     non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).

@@ -31,7 +31,7 @@
 -export([required/2]).
 -export([validate_list_of_binaries/1]).
 -export([validate_email_address/1]).
-
+-export([validate_url/1]).
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
@@ -240,6 +240,16 @@ validate_email_address(Address) ->
         end
     catch _:_ ->
             {error, {?INVALID_EMAIL_ADDRESS, [Address]}}
+    end.
+
+-spec validate_url(binary()) -> binary() | error().
+validate_url(Url) when is_binary(Url) ->
+    L = binary_to_list(Url),
+    case ibrowse_lib:parse_url(L) of
+        {error, _} ->
+            {error, {?INVALID_URL, [Url]}};
+        _ ->
+            Url
     end.
 
 %% Time manipulation
