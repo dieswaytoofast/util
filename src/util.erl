@@ -35,6 +35,7 @@
 -export([validate_url/1]).
 -export([validate_tcp_port/1]).
 -export([validate_utf8/1]).
+-export([validate_area_code/1]).
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
@@ -288,6 +289,16 @@ validate_utf8(Bin) ->
     catch _:_ ->
             {error, {?INVALID_UTF8, [Bin]}}
     end.
+
+-spec validate_area_code(binary()) -> binary() | error().
+validate_area_code(AreaCode) when is_binary(AreaCode) ->
+    case bstr:is_digit(AreaCode) of
+        true ->
+            AreaCode;
+        false ->
+            {error, {?INVALID_AREA_CODE, [AreaCode]}}
+    end.
+
 
 %% Time manipulation
 

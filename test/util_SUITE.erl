@@ -69,7 +69,8 @@ groups() ->
       t_validate_tcp_port,
       t_validate_utf8,
       t_validate_utf8_spec,
-      t_validate_list_with]}].
+      t_validate_list_with,
+      t_validate_area_code]}].
 
 all() ->
     [{group, conversion},
@@ -231,6 +232,16 @@ t_validate_list_with(_) ->
 
 prop_validate_list_with() ->
     ?FORALL(L, list(integer()), L =:= util:validate_list_with({json, validate_integer}, L)).
+
+t_validate_area_code(_) ->
+    ?PROPTEST(prop_validate_area_code).
+
+prop_validate_area_code() ->
+    ?FORALL(L, [integer($2, $9), integer($0, $9), integer($0, $9)],
+            begin
+                AreaCode = list_to_binary(L),
+                AreaCode =:= util:validate_area_code(AreaCode)
+            end).
 
 email_local_part() ->
     non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).
