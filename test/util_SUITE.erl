@@ -40,6 +40,7 @@ groups() ->
        t_get_binary,
        t_get_integer,
        t_get_boolean,
+       t_get_base36,
        t_get_base62]},
 
 
@@ -47,6 +48,11 @@ groups() ->
      [t_required,
       t_validate_list_of_binaries]},
      
+    {list, [],
+     [t_get_value_3,
+      t_get_value_4,
+      t_get_value_4_generated]},
+
     {uuid, [],
      [t_create_uuid]},
 
@@ -69,6 +75,7 @@ groups() ->
 all() ->
     [{group, conversion},
      {group, validation},
+     {group, list},
      {group, uuid},
      {group, json}].
 
@@ -91,14 +98,23 @@ t_get_boolean(_) ->
 t_get_base62(_) ->
     ?CHECKSPEC(util, get_base62, 1).
 
+t_get_base36(_) ->
+    ?CHECKSPEC(util, get_base36, 1).
+
 t_required(_) ->
     ?CHECKSPEC(util, required, 2).
 
 t_validate_list_of_binaries(_) ->
     ?CHECKSPEC(util, validate_list_of_binaries, 1).
 
+t_get_value_3(_) ->
+    ?CHECKSPEC(util, get_value, 3).
+
+t_get_value_4(_) ->
+    ?CHECKSPEC(util, get_value, 4).
+
 t_create_uuid(_) ->
-    ?CHECKSPEC(util, required, 2).
+    ?CHECKSPEC(util, create_uuid, 0).
 
 t_validate_boolean(_) ->
     ?CHECKSPEC(json, validate_boolean, 1).
@@ -184,6 +200,28 @@ json_boolean() ->
     oneof([boolean(), binary_boolean()]).
 json_boolean_list() ->
     list(json_boolean()).
+
+t_get_value_4_generated(_) ->
+    ?PROPTEST(prop_get_value_4_generated).
+
+prop_get_value_4_generated() ->
+    ?FORALL(T, tuple_list(),
+            case util:get_value(foo, 1, undefined, T) of
+                undefined ->
+                    true;
+                bar ->
+                    false;
+                _ ->
+                    false
+            end).
+    
+%% generator for expected list of tuples
+tuple_list() ->
+    ?LET(T, oneof([contains_val_list(), not_contains_val_list()]), T).
+contains_val_list() ->
+    list({term(), term()}), {foo, bar}, list({term(), term()}).
+not_contains_val_list() ->
+    list({term(), term()}).
 
 %% generator for expected integer
 binary_integer() ->

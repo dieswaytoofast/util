@@ -23,6 +23,7 @@
 -export([get_integer/1]).
 -export([get_boolean/1]).
 -export([get_base62/1]).
+-export([get_base36/1]).
 
 %% Validations
 -export([required/2]).
@@ -35,6 +36,9 @@
 
 %% String manipulation
 -export([build_string/1]).
+
+%% List functions
+-export([get_value/3, get_value/4]).
 
 %% UUID stuff
 -export([create_uuid/0]).
@@ -179,24 +183,55 @@ get_base62(Number, Acc) when Number < 0 -> get_base62(-Number, Acc);
 get_base62(Number, Acc) ->
 	NumberDiv = Number div 62,
     NumberRem = Number rem 62,
-	Acc1 = [get_letter(NumberRem) | Acc],
+	Acc1 = [get_base62_letter(NumberRem) | Acc],
 	get_base62(NumberDiv, Acc1).
 
-get_letter(X) when X =< 9 -> $0 + X;
-get_letter(X) when X =< 35 -> $A + X - 10;
-get_letter(X) -> $a + X - 36.
+get_base62_letter(X) when X =< 9 -> $0 + X;
+get_base62_letter(X) when X =< 35 -> $A + X - 10;
+get_base62_letter(X) -> $a + X - 36.
 
+-spec get_base36(integer()) -> string().
+get_base36(Number) -> get_base36(Number, []).
+get_base36(Number, []) when Number =:= 0 -> "0";
+get_base36(Number, Acc) when Number =:= 0 -> Acc;
+get_base36(Number, Acc) when Number < 0 -> get_base36(-Number, Acc); 
+get_base36(Number, Acc) ->
+	NumberDiv = Number div 36,
+    NumberRem = Number rem 36,
+	Acc1 = [get_base36_letter(NumberRem) | Acc],
+	get_base36(NumberDiv, Acc1).
+
+get_base36_letter(X) when X =< 9 -> $0 + X;
+get_base36_letter(X) -> $A + X - 10.
 
 %%
-%% String Manipulation
+%% Lists
 %% 
-build_string(Params) when is_list(Params) ->
-    Result = 
-    lists:foldr(fun(X, Acc) ->
-                    SX = get_string(X),
-                    [SX|Acc]
-            end, [], Params),
-    lists:flatten(Result).
+
+%% @doc: Search the key in the list of tuples and returns the value if it exists or throws an exception if it doesn't.
+-spec get_value(Key::term(), N::integer(), TupleList::[tuple()]) -> term().
+get_value(_Key, _N, []) ->
+    throw({empty_list, []});
+get_value(Key, N, TupleList) ->
+    case lists:keyfind( Key, N, TupleList ) of
+        false ->
+            throw({invalid_key, Key});
+        Tuple ->
+            element(N, Tuple)
+    end.
+
+%% @doc: Search the key in the list of tuples and returns the value if it exists or the default value if it doesn't.
+-spec get_value(Key::term(), N::integer(), Default::term(), TupleList::[tuple()]) -> term().
+get_value(_Key, _N, Default, []) ->
+    Default;
+get_value(Key, N, Default, TupleList) ->
+    case lists:keyfind( Key, N, TupleList ) of
+        false ->
+            Default;
+        Tuple ->
+            element(N, Tuple)
+    end.
+
 
 %%
 %% Validations
@@ -244,6 +279,18 @@ datetime_to_epoch({{_Year, _Month, _Day} = Date, {Hour, Min, Sec}}) when is_floa
 -spec get_epoch() -> epoch().
 get_epoch() ->
     datetime_to_epoch(calendar:universal_time()).
+
+%%
+%% String Manipulation
+%% 
+build_string(Params) when is_list(Params) ->
+    Result = 
+    lists:foldr(fun(X, Acc) ->
+                    SX = get_string(X),
+                    [SX|Acc]
+            end, [], Params),
+    lists:flatten(Result).
+
 
 %% UUID
 %% @doc  Generate a v4 UUID as a binary (rfc4122)

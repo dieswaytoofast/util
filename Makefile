@@ -33,7 +33,7 @@ test: compile
 	@rebar skip_deps=true ct verbose=1
 
 console:
-	$(ERL) -sname $(APPLICATION) $(EPATH) -config app
+	$(ERL) -sname $(APPLICATION) $(EPATH)
 
 test-console: test
 	$(ERL) -sname $(APPLICATION)_test $(TEST_EPATH) -config app
