@@ -12,6 +12,9 @@
 -author('Tom Heinan <me@tomheinan.com>').
 
 -define(SERVER, ?MODULE).
+%% We're not checking for RFC compliance
+%% http://www.w3.org/TR/html5/states-of-the-type-attribute.html#valid-e-mail-address
+-define(EMAIL_ADDRESS_REGEXP, "^[a-zA-Z0-9.\\\!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$").
 
 -include("defaults.hrl").
 
@@ -28,7 +31,12 @@
 %% Validations
 -export([required/2]).
 -export([validate_list_of_binaries/1]).
-
+-export([validate_list_with/2]).
+-export([validate_email_address/1]).
+-export([validate_url/1]).
+-export([validate_tcp_port/1]).
+-export([validate_utf8/1]).
+-export([validate_area_code/1]).
 
 %% Time specific stuff
 -export([datetime_to_epoch/1]).
@@ -121,7 +129,7 @@ stop_app(App) ->
 
 %%
 %% Conversion
-%% 
+%%
 
 -spec get_integer(binary() | atom() | list() | char()) -> integer() | error().
 get_integer(Value) when is_integer(Value) -> Value;
@@ -165,21 +173,21 @@ get_binary(_) -> {error, ?INVALID_BINARY}.
 
 %% @doc Gets the boolean value of the provided parameter
 -spec get_boolean(Value::term()) -> boolean() | error().
-get_boolean(Value) when is_binary(Value) -> 
+get_boolean(Value) when is_binary(Value) ->
     get_boolean_lower_value(bstr:lower(Value));
-get_boolean(Value) -> 
+get_boolean(Value) ->
     {error, {?INVALID_BOOLEAN, [Value]}}.
 
 get_boolean_lower_value(<<"true">>) -> true;
 get_boolean_lower_value(<<"false">>) -> false;
-get_boolean_lower_value(Value) -> 
+get_boolean_lower_value(Value) ->
     {error, {?INVALID_BOOLEAN, [Value]}}.
 
 -spec get_base62(integer()) -> string().
 get_base62(Number) -> get_base62(Number, []).
 get_base62(Number, []) when Number =:= 0 -> "0";
 get_base62(Number, Acc) when Number =:= 0 -> Acc;
-get_base62(Number, Acc) when Number < 0 -> get_base62(-Number, Acc); 
+get_base62(Number, Acc) when Number < 0 -> get_base62(-Number, Acc);
 get_base62(Number, Acc) ->
 	NumberDiv = Number div 62,
     NumberRem = Number rem 62,
@@ -235,7 +243,7 @@ get_value(Key, N, Default, TupleList) ->
 
 %%
 %% Validations
-%% 
+%%
 %% @doc Check if Value is an 'empty' parameter
 -spec required(Field::term(), Value::term()) -> ok | error().
 required(Field, Value) ->
@@ -262,6 +270,73 @@ validate_list_of_binaries([H|T], ReturnVal) ->
     end;
 validate_list_of_binaries([], _ReturnVal) ->
     ok.
+
+-spec validate_list_with({module(), atom()}, list()) -> list() | error().
+validate_list_with({_M, _F}=Fun, L) ->
+    validate_list_with_1(Fun, L, L, []).
+
+validate_list_with_1(_, _, [], Acc) ->
+    lists:reverse(Acc);
+validate_list_with_1({M, F}=Fun, L, [H|T], Acc) ->
+    case M:F(H) of
+        {error, _} ->
+            {error, {?INVALID_LIST, [L]}};
+        H2 ->
+            validate_list_with_1(Fun, L, T, [H2|Acc])
+    end.
+
+-spec validate_email_address(term()) -> binary() | error().
+validate_email_address(Address) ->
+    try
+        case re:run(Address, ?EMAIL_ADDRESS_REGEXP, [{capture, all, binary}]) of
+            nomatch ->
+                {error, {?INVALID_EMAIL_ADDRESS, [Address]}};
+            {match, [B]} ->
+                B
+        end
+    catch _:_ ->
+            {error, {?INVALID_EMAIL_ADDRESS, [Address]}}
+    end.
+
+-spec validate_url(binary()) -> binary() | error().
+validate_url(Url) when is_binary(Url) ->
+    L = binary_to_list(Url),
+    case ibrowse_lib:parse_url(L) of
+        {error, _} ->
+            {error, {?INVALID_URL, [Url]}};
+        _ ->
+            Url
+    end.
+
+-spec validate_tcp_port(term()) -> 1 .. 65535 | error().
+validate_tcp_port(Port) when is_integer(Port) andalso Port > 0 andalso Port =< 65535 ->
+    Port;
+validate_tcp_port(Port) ->
+    {error, {?INVALID_TCP_PORT, [Port]}}.
+
+-spec validate_utf8(term()) -> binary() | error().
+validate_utf8(Bin) ->
+    try
+        Bin2 = bstr:bstr(Bin),
+        case unicode:characters_to_binary(Bin2, utf8, utf8) of
+            Bin2 ->
+                Bin2;
+            _ ->
+                {error, {?INVALID_UTF8, [Bin]}}
+        end
+    catch _:_ ->
+            {error, {?INVALID_UTF8, [Bin]}}
+    end.
+
+-spec validate_area_code(binary()) -> binary() | error().
+validate_area_code(AreaCode) when is_binary(AreaCode) ->
+    case bstr:is_digit(AreaCode) of
+        true ->
+            AreaCode;
+        false ->
+            {error, {?INVALID_AREA_CODE, [AreaCode]}}
+    end.
+
 
 %% Time manipulation
 

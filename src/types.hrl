@@ -12,7 +12,10 @@
 -type error()           :: {error, Reason :: term()}.
 
 %% Tuple containing a date and time.
--type datetime()                                :: {calendar:date(), {calendar:hour(), calendar:minute(), calendar:second() | float()}}.
+-type hour()     :: 0..23.
+-type minute()   :: 0..59.
+-type second()   :: 0..59.
+-type datetime()                                :: {calendar:date(), {hour(), minute(), second() | float()}}.
 %% A floating point number representing the number of seconds elapsed since
 %% Jan 1, 1970, 00:00:00 (Unix epoch).
 -type epoch()                                   :: non_neg_integer() | float().

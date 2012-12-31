@@ -14,7 +14,7 @@
 %%--------------------------------------------------------------------
 
 suite() ->
-    [{timetrap,{minutes,1}}].
+    [{ct_hooks,[cth_surefire]}, {timetrap,{minutes,1}}].
 
 init_per_suite(Config) ->
     Config.
@@ -35,7 +35,7 @@ end_per_testcase(_TestCase, _Config) ->
     ok.
 
 groups() ->
-    [{conversion, [],
+    [{conversion, [parallel],
       [t_get_string,
        t_get_binary,
        t_get_integer,
@@ -44,9 +44,11 @@ groups() ->
        t_get_base62]},
 
 
-    {validation, [],
+    {validation, [parallel],
      [t_required,
-      t_validate_list_of_binaries]},
+      t_validate_list_of_binaries,
+      t_validate_email_address,
+      t_validate_email_address_correct]},
      
     {list, [],
      [t_get_value_3,
@@ -56,7 +58,7 @@ groups() ->
     {uuid, [],
      [t_create_uuid]},
 
-    {json, [],
+    {json, [parallel],
      [t_validate_boolean,
       t_validate_boolean_list,
       t_validate_boolean_list_generated,
@@ -70,7 +72,14 @@ groups() ->
       t_validate_undefined_generated,
       t_validate_null,
       t_validate_null_generated,
-      t_validate_ignore]}].
+      t_validate_ignore,
+      t_validate_atom,
+      t_validate_url,
+      t_validate_tcp_port,
+      t_validate_utf8,
+      t_validate_utf8_spec,
+      t_validate_list_with,
+      t_validate_area_code]}].
 
 all() ->
     [{group, conversion},
@@ -115,6 +124,14 @@ t_get_value_4(_) ->
 
 t_create_uuid(_) ->
     ?CHECKSPEC(util, create_uuid, 0).
+t_validate_email_address(_) ->
+    ?CHECKSPEC(util, validate_email_address, 1).
+
+t_validate_email_address_correct(_) ->
+    ?PROPTEST(prop_email_address).
+
+prop_email_address() ->
+    ?FORALL(E, email(), E =:= util:validate_email_address(E)).
 
 t_validate_boolean(_) ->
     ?CHECKSPEC(json, validate_boolean, 1).
@@ -230,3 +247,61 @@ json_integer() ->
     oneof([integer(), binary_integer()]).
 json_integer_list() ->
     list(json_integer()).
+
+t_validate_atom(_) ->
+    ?CHECKSPEC(json, validate_atom, 2).
+
+t_validate_url(_) ->
+    Url = <<"http://foo.bar.com?a=b">>,
+    Url = util:validate_url(Url),
+    Url2 = <<"https://foo.bar.com?a=b">>,
+    Url2 = util:validate_url(Url2),
+    BadUrl = <<"htt://foo.bar.com?a=b">>,
+    {error, {?INVALID_URL, [BadUrl]}} = util:validate_url(BadUrl).
+
+t_validate_tcp_port(_) ->
+    ?CHECKSPEC(util, validate_tcp_port, 1).
+
+t_validate_utf8(_) ->
+    ?PROPTEST(prop_validate_utf8).
+
+prop_validate_utf8() ->
+    ?FORALL(B, proper_stdgen:utf8_bin(), B =:= util:validate_utf8(B)).
+
+t_validate_utf8_spec(_) ->
+    ?CHECKSPEC(util, validate_utf8, 1).
+
+t_validate_list_with(_) ->
+    ?PROPTEST(prop_validate_list_with).
+
+prop_validate_list_with() ->
+    ?FORALL(L, list(integer()), L =:= util:validate_list_with({json, validate_integer}, L)).
+
+t_validate_area_code(_) ->
+    ?PROPTEST(prop_validate_area_code).
+
+prop_validate_area_code() ->
+    ?FORALL(L, [integer($2, $9), integer($0, $9), integer($0, $9)],
+            begin
+                AreaCode = list_to_binary(L),
+                AreaCode =:= util:validate_area_code(AreaCode)
+            end).
+
+email_local_part() ->
+    non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-, $!, $#, $$, $%, $&, $', $*, $/, $=, $?, $^, $_, $`, ${, $|, $}, $~, $-]))).
+
+label() ->
+    non_empty(list(oneof([integer($a, $z), integer($A, $Z), integer($0, $9), $-]))).
+
+email_domain() ->
+  ?SUCHTHAT(Hostname,
+    ?LET(Labels,
+      non_empty(list(label())),
+      string:join(Labels, ".")),
+    length(Hostname) < 256).
+
+email() ->
+    ?SUCHTHAT(Email,
+              ?LET({LocalPart, Domain}, {email_local_part(), email_domain()},
+                   list_to_binary(string:join([LocalPart, Domain], "@"))),
+              byte_size(Email) < 255).
