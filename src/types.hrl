@@ -19,3 +19,4 @@
 %% A floating point number representing the number of seconds elapsed since
 %% Jan 1, 1970, 00:00:00 (Unix epoch).
 -type epoch()                                   :: non_neg_integer() | float().
+-type audio_path()                              :: file:filename().
