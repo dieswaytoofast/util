@@ -4,8 +4,12 @@
 
 -export([validate_boolean/1,
          validate_boolean_list/1,
+         validate_float/1,
+         validate_float_list/1,
          validate_integer/1,
+         validate_non_neg_integer/1,
          validate_integer_list/1,
+         validate_non_neg_integer_list/1,
          validate_binary/1,
          validate_binary_list/1,
          validate_undefined/1,
@@ -29,6 +33,20 @@ validate_boolean(Bin) when is_binary(Bin) ->
 validate_boolean(Other) ->
     {error, {?INVALID_BOOLEAN, [Other]}}.
 
+-spec validate_float(any()) -> float() | error().
+validate_float(Float) when is_float(Float) ->
+    Float;
+validate_float(Bin) when is_binary(Bin) ->
+    try
+        bstr:to_float(Bin)
+    catch
+        error:badarg ->
+            {error, {?INVALID_INTEGER, [Bin]}}
+    end;
+validate_float(Other) ->
+    {error, {?INVALID_FLOAT, [Other]}}.
+
+
 -spec validate_integer(any()) -> integer() | error().
 validate_integer(Int) when is_integer(Int) ->
     Int;
@@ -42,6 +60,18 @@ validate_integer(Bin) when is_binary(Bin) ->
 validate_integer(Other) ->
     {error, {?INVALID_INTEGER, [Other]}}.
 
+-spec validate_non_neg_integer(any()) -> non_neg_integer() | error().
+validate_non_neg_integer(Int) ->
+    case validate_integer(Int) of
+        {error, _} = Error ->
+            Error;
+        IntVal ->
+            case IntVal >= 0 of
+                true -> IntVal;
+                false -> {error, {?INVALID_NON_NEG_INTEGER, [Int]}}
+            end
+    end.
+    
 -spec validate_binary(any()) -> binary() | error().
 validate_binary(Bin) when is_binary(Bin) ->
     Bin;
@@ -54,11 +84,24 @@ validate_boolean_list(L) when is_list(L) ->
 validate_boolean_list(Other) ->
     {error, {?INVALID_BOOLEAN_LIST, [Other]}}.
 
+-spec validate_float_list(any()) -> [float()] | error().
+validate_float_list(L) when is_list(L) ->
+    validate_list_with(fun validate_float_list/1, ?INVALID_FLOAT_LIST, L);
+validate_float_list(Other) ->
+    {error, {?INVALID_FLOAT_LIST, [Other]}}.
+
+
 -spec validate_integer_list(any()) -> [integer()] | error().
 validate_integer_list(L) when is_list(L) ->
     validate_list_with(fun validate_integer/1, ?INVALID_INTEGER_LIST, L);
 validate_integer_list(Other) ->
     {error, {?INVALID_INTEGER_LIST, [Other]}}.
+
+-spec validate_non_neg_integer_list(any()) -> [integer()] | error().
+validate_non_neg_integer_list(L) when is_list(L) ->
+    validate_list_with(fun validate_non_neg_integer/1, ?INVALID_NON_NEG_INTEGER_LIST, L);
+validate_non_neg_integer_list(Other) ->
+    {error, {?INVALID_NON_NEG_INTEGER_LIST, [Other]}}.
 
 -spec validate_binary_list(any()) -> [binary()] | error().
 validate_binary_list(L) when is_list(L) ->

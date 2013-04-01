@@ -62,9 +62,14 @@ groups() ->
      [t_validate_boolean,
       t_validate_boolean_list,
       t_validate_boolean_list_generated,
+      t_validate_float,
+      t_validate_float_list,
       t_validate_integer,
       t_validate_integer_list,
       t_validate_integer_list_generated,
+      t_validate_non_neg_integer,
+      t_validate_non_neg_integer_list,
+      t_validate_non_neg_integer_list_generated,
       t_validate_binary,
       t_validate_binary_list,
       t_validate_binary_list_generated,
@@ -149,6 +154,24 @@ prop_validate_boolean_list_generated() ->
                 _ -> true
             end).
 
+t_validate_float(_) ->
+    ?CHECKSPEC(json, validate_float, 1).
+
+t_validate_float_list(_) ->
+    ?CHECKSPEC(json, validate_float_list, 1).
+
+t_validate_float_list_generated(_) ->
+    ?PROPTEST(prop_validate_float_list_generated).
+
+prop_validate_float_list_generated() ->
+    ?FORALL(L, json_float_list(),
+            case json:validate_float_list(L) of
+                {error, _} ->
+                    false;
+                _ ->
+                    true
+            end).
+
 t_validate_integer(_) ->
     ?CHECKSPEC(json, validate_integer, 1).
 
@@ -161,6 +184,24 @@ t_validate_integer_list_generated(_) ->
 prop_validate_integer_list_generated() ->
     ?FORALL(L, json_integer_list(),
             case json:validate_integer_list(L) of
+                {error, _} ->
+                    false;
+                _ ->
+                    true
+            end).
+
+t_validate_non_neg_integer(_) ->
+    ?CHECKSPEC(json, validate_non_neg_integer, 1).
+
+t_validate_non_neg_integer_list(_) ->
+    ?CHECKSPEC(json, validate_non_neg_integer_list, 1).
+
+t_validate_non_neg_integer_list_generated(_) ->
+    ?PROPTEST(prop_validate_non_neg_integer_list_generated).
+
+prop_validate_non_neg_integer_list_generated() ->
+    ?FORALL(L, json_non_neg_integer_list(),
+            case json:validate_non_neg_integer_list(L) of
                 {error, _} ->
                     false;
                 _ ->
@@ -240,6 +281,14 @@ contains_val_list() ->
 not_contains_val_list() ->
     list({term(), term()}).
 
+%% generator for expected float
+binary_float() ->
+    ?LET(B, float(), list_to_binary(float_to_list(B))).
+json_float() ->
+    oneof([float(), binary_float()]).
+json_float_list() ->
+    list(json_float()).
+
 %% generator for expected integer
 binary_integer() ->
     ?LET(B, integer(), list_to_binary(integer_to_list(B))).
@@ -247,6 +296,14 @@ json_integer() ->
     oneof([integer(), binary_integer()]).
 json_integer_list() ->
     list(json_integer()).
+
+%% generator for expected non_neg_integer
+binary_non_neg_integer() ->
+    ?LET(B, non_neg_integer(), list_to_binary(integer_to_list(B))).
+json_non_neg_integer() ->
+    oneof([non_neg_integer(), binary_non_neg_integer()]).
+json_non_neg_integer_list() ->
+    list(json_non_neg_integer()).
 
 t_validate_atom(_) ->
     ?CHECKSPEC(json, validate_atom, 2).

@@ -138,7 +138,7 @@ get_integer(Value) ->
         true ->
             get_integer_value(Value);
         false ->
-            {error, {?INVALID_INTEGER, [Value]}}
+            {error, ?INVALID_INTEGER}
     end.
 
 -spec get_integer_value(term()) -> integer().
@@ -147,7 +147,12 @@ get_integer_value(Value) when is_binary(Value) ->
 get_integer_value(Value) when is_atom(Value) ->
     get_integer_value(bstr:bstr(Value));
 get_integer_value(Value) when is_list(Value) ->
-    list_to_integer(Value);
+    try
+        list_to_integer(Value)
+    catch
+        _:_ ->
+            {error, ?INVALID_INTEGER}
+    end;
 get_integer_value(Value) when is_integer(Value) ->
     Value.
 
@@ -167,7 +172,12 @@ get_string(_) -> {error, ?INVALID_STRING}.
 -spec get_binary(term()) -> binary() | error().
 get_binary(Data) when is_integer(Data) -> get_binary(integer_to_list(Data));
 get_binary(Data) when is_atom(Data) -> get_binary(atom_to_list(Data));
-get_binary(Data) when is_list(Data) -> list_to_binary(Data);
+get_binary(Data) when is_list(Data) -> 
+    try
+        list_to_binary(Data)
+    catch
+        _:_ -> {error, ?INVALID_BINARY}
+    end;
 get_binary(Data) when is_binary(Data) -> Data;
 get_binary(_) -> {error, ?INVALID_BINARY}.
 
@@ -217,7 +227,7 @@ get_base36_letter(X) -> $A + X - 10.
 %% 
 
 %% @doc: Search the key in the list of tuples and returns the value if it exists or throws an exception if it doesn't.
--spec get_value(Key::term(), N::integer(), TupleList::[tuple()]) -> term().
+-spec get_value(Key::term(), N::pos_integer(), TupleList::[tuple()]) -> term().
 get_value(_Key, _N, []) ->
     throw({empty_list, []});
 get_value(Key, N, TupleList) ->
@@ -229,7 +239,7 @@ get_value(Key, N, TupleList) ->
     end.
 
 %% @doc: Search the key in the list of tuples and returns the value if it exists or the default value if it doesn't.
--spec get_value(Key::term(), N::integer(), Default::term(), TupleList::[tuple()]) -> term().
+-spec get_value(Key::term(), N::pos_integer(), Default::term(), TupleList::[tuple()]) -> term().
 get_value(_Key, _N, Default, []) ->
     Default;
 get_value(Key, N, Default, TupleList) ->
