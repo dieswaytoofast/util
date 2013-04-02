@@ -79,6 +79,7 @@ groups() ->
       t_validate_null_generated,
       t_validate_ignore,
       t_validate_atom,
+      t_validate_atom_from_list,
       t_validate_url,
       t_validate_tcp_port,
       t_validate_utf8,
@@ -307,6 +308,9 @@ json_non_neg_integer_list() ->
 
 t_validate_atom(_) ->
     ?CHECKSPEC(json, validate_atom, 2).
+
+t_validate_atom_from_list(_) ->
+    ?CHECKSPEC(json, validate_atom_from_list, 2).
 
 t_validate_url(_) ->
     Url = <<"http://foo.bar.com?a=b">>,

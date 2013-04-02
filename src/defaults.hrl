@@ -14,6 +14,7 @@
 -define(INVALID_NON_NEG_INTEGER, <<"invalid_non_neg_integer">>).
 -define(INVALID_FLOAT_LIST, <<"invalid_float_list">>).
 -define(INVALID_INTEGER_LIST, <<"invalid_integer_list">>).
+-define(INVALID_ATOM_LIST, <<"invalid_atom_list">>).
 -define(INVALID_NON_NEG_INTEGER_LIST, <<"invalid_non_neg_integer_list">>).
 -define(INVALID_BOOLEAN, <<"invalid_boolean">>).
 -define(INVALID_BOOLEAN_LIST, <<"invalid_boolean_list">>).

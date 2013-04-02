@@ -15,7 +15,8 @@
          validate_undefined/1,
          validate_null/1,
          validate_ignore/1,
-         validate_atom/2]).
+         validate_atom/2,
+         validate_atom_from_list/2]).
 %% Validation
 
 -spec validate_boolean(any()) -> boolean() | error().
@@ -162,3 +163,11 @@ validate_atom(Accept, A) when is_atom(A) ->
     end;
 validate_atom(_, A) ->
     {error, {?INVALID_ATOM, [A]}}.
+
+-spec validate_atom_from_list([atom()], [any()]) -> [atom()] | error().
+validate_atom_from_list(Accept, L) when is_list(Accept), is_list(L) ->
+    validate_list_with(fun(X) -> validate_atom(Accept, X) end,
+                       ?INVALID_ATOM_LIST, L);
+validate_atom_from_list(_, L) ->
+    {error, {?INVALID_ATOM_LIST, [L]}}.
+
