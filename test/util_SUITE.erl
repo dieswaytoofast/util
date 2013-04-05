@@ -212,7 +212,7 @@ prop_validate_non_neg_integer_list_generated() ->
             end).
 
 t_validate_integer_range(_) ->
-    ?CHECKSPEC(json, validate_integer_range, 3).
+    ?CHECKSPEC(json, validate_integer_range, 2).
 
 t_validate_integer_range_generated(_) ->
     ?PROPTEST(prop_validate_integer_range_generated).
@@ -224,7 +224,7 @@ prop_validate_integer_range_generated() ->
                     {A, B};
                 true -> {B, A}
             end, 
-            case json:validate_integer_range(Lower, Higher, I) of
+            case json:validate_integer_range({Lower, Higher}, I) of
                 {error, _} ->
                     if I < Lower orelse I > Higher -> true;
                         true -> false

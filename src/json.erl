@@ -10,7 +10,7 @@
          validate_non_neg_integer/1,
          validate_integer_list/1,
          validate_non_neg_integer_list/1,
-         validate_integer_range/3,
+         validate_integer_range/2,
          validate_binary/1,
          validate_binary_list/1,
          validate_undefined/1,
@@ -105,8 +105,8 @@ validate_non_neg_integer_list(L) when is_list(L) ->
 validate_non_neg_integer_list(Other) ->
     {error, {?INVALID_NON_NEG_INTEGER_LIST, [Other]}}.
 
--spec validate_integer_range(integer(), integer(), any()) -> integer() | error().
-validate_integer_range(Lower, Higher, I) ->
+-spec validate_integer_range({integer(), integer()}, any()) -> integer() | error().
+validate_integer_range({Lower, Higher}, I) ->
     case validate_integer(I) of 
         Int when is_integer(I) andalso
                 Int >= Lower andalso
