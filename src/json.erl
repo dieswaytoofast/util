@@ -227,7 +227,7 @@ diff(_Path, [], []) ->
 
 array_diff(Path, Pos, [Value1 | Tail1], [Value2 | Tail2]) when is_list(Value1); is_list(Value2) ->
     %% We're dealing with subdocuments; recurse into them
-    case diff([Pos | Path], Value1, Value2) of
+    case diff([Pos | Path], lists:sort(Value1), lists:sort(Value2)) of
         match ->
             %% Both elements match; check the next ones
             array_diff(Path, Pos + 1, Tail1, Tail2);
