@@ -105,8 +105,8 @@ validate_non_neg_integer_list(L) when is_list(L) ->
 validate_non_neg_integer_list(Other) ->
     {error, {?INVALID_NON_NEG_INTEGER_LIST, [Other]}}.
 
--spec validate_integer_range(any(), integer(), integer()) -> integer() | error().
-validate_integer_range(I, Lower, Higher) ->
+-spec validate_integer_range(integer(), integer(), any()) -> integer() | error().
+validate_integer_range(Lower, Higher, I) ->
     case validate_integer(I) of 
         Int when is_integer(I) andalso
                 Int >= Lower andalso

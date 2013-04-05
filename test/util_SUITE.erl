@@ -218,13 +218,13 @@ t_validate_integer_range_generated(_) ->
     ?PROPTEST(prop_validate_integer_range_generated).
 
 prop_validate_integer_range_generated() ->
-    ?FORALL({I, A, B}, {json_integer(), integer(), integer()},
+    ?FORALL({A, B, I}, {integer(), integer(), json_integer()},
             begin
             {Lower, Higher} = if A < B ->
                     {A, B};
                 true -> {B, A}
             end, 
-            case json:validate_integer_range(I, Lower, Higher) of
+            case json:validate_integer_range(Lower, Higher, I) of
                 {error, _} ->
                     if I < Lower orelse I > Higher -> true;
                         true -> false
