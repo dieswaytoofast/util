@@ -70,6 +70,8 @@ groups() ->
       t_validate_non_neg_integer,
       t_validate_non_neg_integer_list,
       t_validate_non_neg_integer_list_generated,
+      t_validate_integer_range,
+      t_validate_integer_range_generated,
       t_validate_binary,
       t_validate_binary_list,
       t_validate_binary_list_generated,
@@ -208,6 +210,30 @@ prop_validate_non_neg_integer_list_generated() ->
                 _ ->
                     true
             end).
+
+t_validate_integer_range(_) ->
+    ?CHECKSPEC(json, validate_integer_range, 3).
+
+t_validate_integer_range_generated(_) ->
+    ?PROPTEST(prop_validate_integer_range_generated).
+
+prop_validate_integer_range_generated() ->
+    ?FORALL({I, A, B}, {json_integer(), integer(), integer()},
+            begin
+            {Lower, Higher} = if A < B ->
+                    {A, B};
+                true -> {B, A}
+            end, 
+            case json:validate_integer_range(I, Lower, Higher) of
+                {error, _} ->
+                    if I < Lower orelse I > Higher -> true;
+                        true -> false
+                    end;
+                _ ->
+                    true
+            end
+        end).
+
 
 t_validate_binary(_) ->
     ?CHECKSPEC(json, validate_binary, 1).
