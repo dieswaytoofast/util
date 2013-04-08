@@ -18,6 +18,8 @@
          validate_ignore/1,
          validate_atom/2,
          validate_atom_from_list/2]).
+-export([diff/2]).
+
 %% Validation
 
 -spec validate_boolean(any()) -> boolean() | error().
@@ -73,7 +75,7 @@ validate_non_neg_integer(Int) ->
                 false -> {error, {?INVALID_NON_NEG_INTEGER, [Int]}}
             end
     end.
-    
+
 -spec validate_binary(any()) -> binary() | error().
 validate_binary(Bin) when is_binary(Bin) ->
     Bin;
@@ -107,7 +109,7 @@ validate_non_neg_integer_list(Other) ->
 
 -spec validate_integer_range({integer(), integer()}, any()) -> integer() | error().
 validate_integer_range({Lower, Higher}, I) ->
-    case validate_integer(I) of 
+    case validate_integer(I) of
         Int when is_integer(I) andalso
                 Int >= Lower andalso
                 Int =< Higher -> Int;
@@ -182,3 +184,67 @@ validate_atom_from_list(Accept, L) when is_list(Accept), is_list(L) ->
 validate_atom_from_list(_, L) ->
     {error, {?INVALID_ATOM_LIST, [L]}}.
 
+
+%% @doc Check two parsed JSON documents in the format used by the jsx JSON
+%%      parser and return the first term where they differ.
+-spec diff(jsx:json_term(), jsx:json_term()) -> match | {nomatch, Path :: list(), Left :: jsx:json_term(), Right :: jsx:json_term()}.
+diff(JsonTerm1, JsonTerm2) when is_list(JsonTerm1), is_list(JsonTerm2) ->
+    diff([], lists:sort(JsonTerm1), lists:sort(JsonTerm2)).
+
+diff(Path, [{Name, Value} | Tail1], [{Name, Value} | Tail2]) when not is_list(Value) ->
+    %% Both elements have scalar values that match, so check the next element
+    diff(Path, Tail1, Tail2);
+diff(Path, [{Name, List1 = [Head | _]} | Tail1], [{Name, List2} | Tail2]) when is_tuple(Head) ->
+    %% The field name matches and it holds a subdocument, so check it
+    case diff([Name | Path], lists:sort(List1), lists:sort(List2)) of
+        match ->
+            %% If it matches, continue with the rest of the elements
+            diff(Path, Tail1, Tail2);
+        {nomatch, _DiffPath, _A, _B} = Result ->
+            Result
+    end;
+diff(Path, [{Name, Array1 = [_ | _]} | Tail1], [{Name, Array2} | Tail2]) ->
+    %% The field name matches and it holds an array, so check its elements
+    case array_diff([Name | Path], 1, Array1, Array2) of
+        match ->
+            %% If it matches, continue with the rest of the elements
+            diff(Path, Tail1, Tail2);
+        {nomatch, _DiffPath, _A, _B} = Result ->
+            Result
+    end;
+diff(Path, [{_Name1, _Value1} = Tuple1 | _Tail1], [{_Name2, _Value2} = Tuple2 | _Tail2]) ->
+    %% The field names don't match
+    {nomatch, lists:reverse(Path), Tuple1, Tuple2};
+diff(Path, [{Name1, Value1} | _], []) ->
+    %% The left document is longer than the right one
+    {nomatch, lists:reverse([Name1 | Path]), Value1, null};
+diff(Path, [], [{Name2, Value2} | _]) ->
+    %% The left document is shorter than the right one
+    {nomatch, lists:reverse([Name2 | Path]), null, Value2};
+diff(_Path, [], []) ->
+    match.
+
+
+array_diff(Path, Pos, [Value1 | Tail1], [Value2 | Tail2]) when is_list(Value1); is_list(Value2) ->
+    %% We're dealing with subdocuments; recurse into them
+    case diff([Pos | Path], lists:sort(Value1), lists:sort(Value2)) of
+        match ->
+            %% Both elements match; check the next ones
+            array_diff(Path, Pos + 1, Tail1, Tail2);
+        {nomatch, _DiffPath, _A, _B} = Result ->
+            Result
+    end;
+array_diff(Path, Pos, [Value | Tail1], [Value | Tail2]) ->
+    %% Both elements match; check the next ones
+    array_diff(Path, Pos + 1, Tail1, Tail2);
+array_diff(Path, Pos, [Value1 | _Tail1], [Value2 | _Tail2]) ->
+    %% The elements don't match
+    {nomatch, lists:reverse([Pos | Path]), Value1, Value2};
+array_diff(Path, Pos, [Value1 | _], []) ->
+    %% The left array is longer than the right one
+    {nomatch, lists:reverse([Pos | Path]), Value1, null};
+array_diff(Path, Pos, [], [Value2 | _]) ->
+    %% The left array is shorter than the right one
+    {nomatch, lists:reverse([Pos | Path]), null, Value2};
+array_diff(_Path, _Pos, [], []) ->
+    match.
