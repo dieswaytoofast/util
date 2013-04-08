@@ -282,11 +282,20 @@ validate_list_of_binaries([], _ReturnVal) ->
     ok.
 
 -spec validate_list_with({module(), atom()}, list()) -> list() | error().
+validate_list_with({_M, _F, _A}=Fun, L) ->
+    validate_list_with_1(Fun, L, L, []);
 validate_list_with({_M, _F}=Fun, L) ->
     validate_list_with_1(Fun, L, L, []).
 
 validate_list_with_1(_, _, [], Acc) ->
     lists:reverse(Acc);
+validate_list_with_1({M, F, A}=Fun, L, [H|T], Acc) ->
+    case M:F(A, H) of
+        {error, _} ->
+            {error, {?INVALID_LIST, [L]}};
+        H2 ->
+            validate_list_with_1(Fun, L, T, [H2|Acc])
+    end;
 validate_list_with_1({M, F}=Fun, L, [H|T], Acc) ->
     case M:F(H) of
         {error, _} ->
