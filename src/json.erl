@@ -16,6 +16,7 @@
          validate_undefined/1,
          validate_null/1,
          validate_ignore/1,
+         validate_integer_in_list/2,
          validate_atom/2,
          validate_atom_from_list/2]).
 -export([diff/2]).
@@ -155,6 +156,38 @@ validate_null(Other) ->
 -spec validate_ignore(any()) -> undefined.
 validate_ignore(_Any) ->
     undefined.
+
+-spec validate_integer_in_list([integer()], any()) -> integer() | error().
+validate_integer_in_list(Accept, B) when is_binary(B) ->
+    try
+        I = list_to_integer(binary_to_list(B)),
+        validate_integer_in_list(Accept, I)
+    catch _:_ ->
+            {error, {?INVALID_INTEGER, [B]}}
+    end;
+validate_integer_in_list(Accept, L) when is_list(L) ->
+    try
+        I = list_to_integer(L),
+        validate_integer_in_list(Accept, I)
+    catch _:_ ->
+            {error, {?INVALID_INTEGER, [L]}}
+    end;
+validate_integer_in_list(Accept, A) when is_atom(A) ->
+    try
+        I = list_to_integer(atom_to_list(A)),
+        validate_integer_in_list(Accept, I)
+    catch _:_ ->
+            {error, {?INVALID_INTEGER, [A]}}
+    end;
+validate_integer_in_list(Accept, I) when is_integer(I) ->
+    case lists:member(I, Accept) of
+        true ->
+            I;
+        false ->
+            {error, {?INVALID_INTEGER, [I]}}
+    end;
+validate_integer_in_list(_, I) ->
+    {error, {?INVALID_INTEGER, [I]}}.
 
 -spec validate_atom([atom()], any()) -> atom() | error().
 validate_atom(Accept, B) when is_binary(B) ->
