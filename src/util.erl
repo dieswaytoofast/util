@@ -20,6 +20,7 @@
 
 -export([get_env/0, get_env/1, get_env/2]).
 -export([start/0, stop/0]).
+-export([start_deps/1, stop_deps/1]).
 %% Conversions
 -export([get_string/1]).
 -export([get_binary/1]).
